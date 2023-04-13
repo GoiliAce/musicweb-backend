@@ -2,9 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .zingapi import ZingMp3Async
-from .models import Album, Artist, Artistsong, Playlist, Playlistbyuser, Playlistbyusersong, Playlistsong, Playlistuser, Song, Topic, User, Usersongs
-from .serializers import AlbumSerializer, ArtistSerializer, ArtistsongSerializer, PlaylistSerializer, PlaylistbyuserSerializer, PlaylistbyusersongSerializer, PlaylistsongSerializer, PlaylistuserSerializer, SongSerializer, TopicSerializer, UserSerializer, UsersongsSerializer
-
+from .models import *
+from .serializers import *
 class TopicListApiView(APIView):
     def get(self, request):
         topics = Topic.objects.all()
@@ -76,15 +75,24 @@ class PlaylistDetailApiView(APIView):
         playlist = self.get_object(id)
         playlist.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-class PlaylistSongsListApiView(APIView):
-    def get(self, request, id):
+
+class PlaylistWithSongsDetailApiView(APIView):
+    def get_object(self, id):
         try:
-            playlist = Playlist.objects.get(id=id)
-        except Song.DoesNotExist:
+            return Playlist.objects.get(id=id)
+        except Playlist.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        songs = playlist.songs.all()  # get all artists associated with the song
-        serializer = SongSerializer(songs, many=True)
+    def get(self, request, id):
+        playlist = self.get_object(id)
+        serializer = PlaylistWithSongsSerializer(playlist)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    def put(self, request, id):
+        playlist = self.get_object(id)
+        serializer = PlaylistWithSongsSerializer(playlist, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -133,28 +141,46 @@ class ArtistListApiView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class ArtistDetailApiView(APIView):
-    def get_object(self, id):
+    def get_object(self, alias):
         try:
-            return Artist.objects.get(id=id)
+            return Artist.objects.get(alias=alias)
         except Artist.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-    def get(self, request, id):
-        artist = self.get_object(id)
-        serializer = ArtistSerializer(artist)
+    def get(self, request, alias):
+        artist = self.get_object(alias)
+        serializer = ArtistWithSongsSerializer(artist)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    def put(self, request, id):
-        artist = self.get_object(id)
-        serializer = ArtistSerializer(artist, data=request.data)
+    def put(self, request, alias):
+        artist = self.get_object(alias)
+        serializer = ArtistWithSongsSerializer(artist, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    def delete(self, request, id):
-        artist = self.get_object(id)
+    def delete(self, request, alias):
+        artist = self.get_object(alias)
         artist.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
+class ArtistWithSongsApiView(APIView):
+    def get_object(self, alias):
+        try:
+            return Artist.objects.get(alias=alias)
+        except Artist.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+    def get(self, request, alias):
+        artist = self.get_object(alias)
+        serializer = ArtistWithSongsSerializer(artist)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    def put(self, request, alias):
+        artist = self.get_object(alias)
+        serializer = ArtistWithSongsSerializer(artist, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class SongListApiView(APIView):
     def get(self, request):
         songs = Song.objects.all()
@@ -188,61 +214,42 @@ class SongDetailApiView(APIView):
         song.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
-class SongArtistsApiView(APIView):
-    def get(self, request, id):
-        try:
-            song = Song.objects.get(id=id)
-        except Song.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        artists = song.artists.all()  # get all artists associated with the song
-        serializer = ArtistSerializer(artists, many=True)
+class CategoryListApiView(APIView):
+    def get(self, request):
+        categories = Category.objects.all()
+        serializer = CategoryListSerializer(categories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    def post(self, request, id):
-        try:
-            song = Song.objects.get(id=id)
-        except Song.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        serializer = ArtistSerializer(data=request.data)
+    def post(self, request):
+        serializer = CategoryListSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            song.artists.add(serializer.instance)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    def delete(self, request, id):
+
+class CategoryDetailApiView(APIView):
+    def get_object(self, alias):
         try:
-            song = Song.objects.get(id=id)
-        except Song.DoesNotExist:
+            return Category.objects.get(alias=alias)
+        except Category.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        song.artists.clear()
+    def get(self, request, alias):
+        category = self.get_object(alias)
+        serializer = CategorySerializer(category)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    def put(self, request, alias):
+        category = self.get_object(alias)
+        serializer = CategorySerializer(category, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def delete(self, request, alias):
+        category = self.get_object(alias)
+        category.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class ArtistSongsApiView(APIView):
-    def get(self, request, id):
-        try:
-            artist = Artist.objects.get(id=id)
-        except Artist.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        songs = artist.songs.all()  # get all songs associated with the artist
-        serializer = SongSerializer(songs, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    def post(self, request, id):
-        try:
-            artist = Artist.objects.get(id=id)
-        except Artist.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        serializer = SongSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            artist.songs.add(serializer.instance)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    def delete(self, request, id):
-        try:
-            artist = Artist.objects.get(id=id)
-        except Artist.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        artist.songs.clear()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 from django.http import JsonResponse
 from asgiref.sync import async_to_sync
 async def getAudio(request, id):

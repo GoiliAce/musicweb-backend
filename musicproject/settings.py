@@ -85,7 +85,7 @@ WSGI_APPLICATION = 'musicproject.wsgi.application'
 DATABASES = {
     'default':{
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'DBMusic',
+        'NAME': 'test1',
         'USER': 'postgres',
         'PASSWORD': '040402',
         'HOST': 'localhost',
@@ -139,6 +139,7 @@ STATICFILES_DIRS = [
 ]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://192.168.56.1:3000"
 ]
 
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True

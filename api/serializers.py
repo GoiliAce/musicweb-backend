@@ -1,15 +1,14 @@
 from rest_framework import serializers
-from .models import Album, Artist, Artistsong, Playlist, Playlistbyuser, Playlistbyusersong, Playlistsong, Playlistuser, Song, Topic, User, Usersongs
-
+from .models import *
 class AlbumSerializer(serializers.ModelSerializer):
     class Meta:
         model = Album
-        fields = ['id', 'title', 'thumbnail_url', 'descripton', 'date_create', 'like']
+        fields = '__all__'
 
 class ArtistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Artist
-        fields = ['id', 'name', 'follow', 'thumbnail', 'alias']
+        fields = '__all__'
 
 class ArtistsongSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,12 +18,12 @@ class ArtistsongSerializer(serializers.ModelSerializer):
 class PlaylistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Playlist
-        fields = ['id', 'title', 'thumbnail', 'topic', 'description']
+        fields = '__all__'
 
 class PlaylistbyuserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Playlistbyuser
-        fields = ['id', 'title', 'thumbnail', 'creator']
+        fields = '__all__'
 
 class PlaylistbyusersongSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,10 +41,9 @@ class PlaylistuserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class SongSerializer(serializers.ModelSerializer):
-    album = AlbumSerializer()
     class Meta:
         model = Song
-        fields = ['id', 'title', 'audio', 'thumbnail', 'album', 'like']
+        fields = '__all__'
 
 class TopicSerializer(serializers.ModelSerializer):
     class Meta:
@@ -55,9 +53,52 @@ class TopicSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['user_name', 'passwd', 'name', 'email', 'thumbnail']
+        fields = '__all__'
 
 class UsersongsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usersongs
         fields = '__all__'
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+
+
+class ArtistForSongSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Artist
+        fields = ['id', 'name','alias']
+class SongForPlaylistSerializer(serializers.ModelSerializer):
+    artists = ArtistForSongSerializer(many=True)
+    album = AlbumSerializer() # serialize album thông qua AlbumSerializer
+    class Meta:
+        model = Song
+        fields = ['id', 'title', 'artists','thumbnail', 'album', 'audio','duration']
+class PlaylistWithSongsSerializer(serializers.ModelSerializer):
+    songs = SongForPlaylistSerializer(many=True)
+    class Meta:
+        model = Playlist
+        fields = '__all__'
+
+class AlbumsWithSongsSerializer(serializers.ModelSerializer):
+    songs = SongForPlaylistSerializer(many=True)
+    class Meta:
+        model = Album
+        fields = '__all__'
+class SongForArtistSerializer(serializers.ModelSerializer):
+    album = AlbumSerializer()
+    class Meta:
+        model = Song
+        fields = ['id', 'title', 'album', 'audio']
+
+class ArtistWithSongsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Artist
+        fields = '__all__'
+class CategoryListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id','title','alias']
