@@ -48,6 +48,7 @@ class PlaylistListApiView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class TopicPlaylistListApiView(APIView):
     def get(self, request, id):
         playlists = Playlist.objects.filter(topic=id)
@@ -172,8 +173,12 @@ class ArtistWithSongsApiView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
     def get(self, request, alias):
         artist = self.get_object(alias)
+        songs = Song.objects.filter(artists=artist).order_by('-listen')[:10] # Lấy 10 bài hát có lượt nghe cao nhất của nghệ sĩ này
         serializer = ArtistWithSongsSerializer(artist)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        artist_data = serializer.data
+        artist_data['songs'] = SongForArtistSerializer(songs, many=True).data # Chuyển đổi các bài hát thành dữ liệu được serialize
+        return Response(artist_data, status=status.HTTP_200_OK)
+    
     def put(self, request, alias):
         artist = self.get_object(alias)
         serializer = ArtistWithSongsSerializer(artist, data=request.data)
@@ -198,21 +203,34 @@ class SongDetailApiView(APIView):
             return Song.objects.get(id=id)
         except Song.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
     def get(self, request, id):
         song = self.get_object(id)
-        serializer = SongSerializer(song)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = SongForPlaylistSerializer(song)
+        response = Response(serializer.data, status=status.HTTP_200_OK)
+        response['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+        response['Access-Control-Allow-Credentials'] = 'true'
+        return response
+
     def put(self, request, id):
-        song = self.get_object(id)
+        song = self.get_object(id)        
         serializer = SongSerializer(song, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            response = Response(serializer.data, status=status.HTTP_200_OK)
+            response['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+            response['Access-Control-Allow-Credentials'] = 'true'
+            return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def delete(self, request, id):
         song = self.get_object(id)
         song.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+        response['Access-Control-Allow-Credentials'] = 'true'
+        return response
+
     
 class CategoryListApiView(APIView):
     def get(self, request):

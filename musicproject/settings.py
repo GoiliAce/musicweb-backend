@@ -61,9 +61,6 @@ ROOT_URLCONF = 'musicproject.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-                os.path.join(BASE_DIR, 'frontend/build')
-        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -141,5 +138,18 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://192.168.56.1:3000"
 ]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',  # replace with your frontend URL
+    'http://127.0.0.1:3000',  # replace with your frontend URL
+]
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [    'accept',    'accept-encoding',    'authorization',    'content-type',    'dnt',    'origin',    'user-agent',    'x-csrftoken',    'x-requested-with']
+
+CORS_ALLOW_METHODS = [    'DELETE',    'GET',    'OPTIONS',    'PATCH',    'POST',    'PUT']
+
+CORS_EXPOSE_HEADERS = [    'content-type',    'x-csrftoken']

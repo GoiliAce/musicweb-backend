@@ -3,9 +3,7 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
-    path('api/topics',views.TopicListApiView.as_view()),
-    path('api/topics/<str:id>',views.TopicDetailApiView.as_view()),
-    path('api/topics/playlist/<str:id>',views.TopicPlaylistListApiView.as_view()),
+    path('api/topic/playlists',views.TopicListApiView.as_view()),
     path('api/albums',views.AlbumListApiView.as_view()),
     path('api/albums/<str:id>',views.AlbumDetailApiView.as_view()),
     path('api/artists',views.ArtistListApiView.as_view()),

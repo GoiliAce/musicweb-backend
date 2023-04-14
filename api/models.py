@@ -129,6 +129,7 @@ class Song(models.Model):
     thumbnail = models.TextField(blank=True, null=True)
     album = models.ForeignKey(Album, models.DO_NOTHING, blank=True, null=True)
     like = models.IntegerField(blank=True, null=True)
+    listen = models.IntegerField(blank=True, null=True)
     duration = models.IntegerField(blank=True, null=True)
     category = models.ManyToManyField(Category, through='Categorysong', blank=True)
     artists = models.ManyToManyField(Artist, through='Artistsong', blank=True)
@@ -143,7 +144,7 @@ class Topic(models.Model):
     id = models.TextField(primary_key=True)
     title = models.TextField(blank=True, null=True)
     thumbnail = models.TextField(blank=True, null=True)
-
+    # playlist =models.OneToOneField(Playlist, models.DO_NOTHING, blank=True, null=True)
     class Meta:
         managed = False
         db_table = 'Topic'

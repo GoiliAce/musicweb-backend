@@ -45,10 +45,6 @@ class SongSerializer(serializers.ModelSerializer):
         model = Song
         fields = '__all__'
 
-class TopicSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Topic
-        fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -73,10 +69,9 @@ class ArtistForSongSerializer(serializers.ModelSerializer):
         fields = ['id', 'name','alias']
 class SongForPlaylistSerializer(serializers.ModelSerializer):
     artists = ArtistForSongSerializer(many=True)
-    album = AlbumSerializer() # serialize album thông qua AlbumSerializer
     class Meta:
         model = Song
-        fields = ['id', 'title', 'artists','thumbnail', 'album', 'audio','duration']
+        fields = ['id', 'title', 'artists','thumbnail', 'album', 'audio','duration','listen']
 class PlaylistWithSongsSerializer(serializers.ModelSerializer):
     songs = SongForPlaylistSerializer(many=True)
     class Meta:
@@ -90,11 +85,13 @@ class AlbumsWithSongsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 class SongForArtistSerializer(serializers.ModelSerializer):
     album = AlbumSerializer()
+    artists = ArtistForSongSerializer(many=True)
     class Meta:
         model = Song
-        fields = ['id', 'title', 'album', 'audio']
+        fields = ['id', 'title', 'album', 'audio', 'artists','thumbnail','duration']
 
 class ArtistWithSongsSerializer(serializers.ModelSerializer):
+    songs = SongForArtistSerializer(many=True)
     class Meta:
         model = Artist
         fields = '__all__'
@@ -102,3 +99,18 @@ class CategoryListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id','title','alias']
+class PlaylistWithoutSongsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Playlist
+        fields = ['id','title','thumbnail','description']
+class TopicSerializer(serializers.ModelSerializer):
+    playlists = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Topic
+        fields = '__all__'
+
+    def get_playlists(self, obj):
+        playlists = Playlist.objects.filter(topic=obj)
+        serializer = PlaylistWithoutSongsSerializer(playlists, many=True)
+        return serializer.data
