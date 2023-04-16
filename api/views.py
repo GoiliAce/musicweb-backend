@@ -2,7 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .zingapi import ZingMp3Async
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import *
+from rest_framework.permissions import IsAuthenticated
 from .serializers import *
 class TopicListApiView(APIView):
     def get(self, request):
@@ -282,8 +284,60 @@ def AudioApiView(request, id):
     data = async_to_sync(getAudio)(request, id)
     return data
 
+# user 
+# import make_password
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth import authenticate
+class UserRegisterApiView(APIView):
+    def post(self, request):
+        serializer = UserRegisterSerializer(data=request.data)
+        print(serializer.is_valid())
+        if serializer.is_valid():
+            serializer.validated_data['password'] = make_password(serializer.validated_data['password'])
+            user = serializer.save()
+            
+            return JsonResponse({
+                'message': 'Register successful!'
+            }, status=status.HTTP_201_CREATED)
 
+        else:
+            return JsonResponse({
+                'error_message': 'This email has already exist!',
+                'errors_code': 400,
+            }, status=status.HTTP_400_BAD_REQUEST)
+class UserLoginApiView(APIView):
+    def post(self, request):
+        serializer = UserLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = authenticate(
+                request,
+                username=serializer.validated_data['username'],
+                password=serializer.validated_data['password']
+            )
+            if user:
+                refresh = TokenObtainPairSerializer.get_token(user)
+                data = {
+                    'refresh_token': str(refresh),
+                    'access_token': str(refresh.access_token)
+                }
+                return Response(data, status=status.HTTP_200_OK)
 
+            return Response({
+                'error_message': 'Email or password is incorrect!',
+                'error_code': 400
+            }, status=status.HTTP_400_BAD_REQUEST)
 
+        return Response({
+            'error_messages': serializer.errors,
+            'error_code': 400
+        }, status=status.HTTP_400_BAD_REQUEST)
 
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
+class CurrentUserView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)

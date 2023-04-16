@@ -45,17 +45,6 @@ class SongSerializer(serializers.ModelSerializer):
         model = Song
         fields = '__all__'
 
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = '__all__'
-
-class UsersongsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Usersongs
-        fields = '__all__'
-
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
@@ -84,11 +73,10 @@ class AlbumsWithSongsSerializer(serializers.ModelSerializer):
         model = Album
         fields = '__all__'
 class SongForArtistSerializer(serializers.ModelSerializer):
-    album = AlbumSerializer()
     artists = ArtistForSongSerializer(many=True)
     class Meta:
         model = Song
-        fields = ['id', 'title', 'album', 'audio', 'artists','thumbnail','duration']
+        fields = ['id', 'title', 'artists','thumbnail', 'album', 'audio','duration','listen']
 
 class ArtistWithSongsSerializer(serializers.ModelSerializer):
     songs = SongForArtistSerializer(many=True)
@@ -114,3 +102,26 @@ class TopicSerializer(serializers.ModelSerializer):
         playlists = Playlist.objects.filter(topic=obj)
         serializer = PlaylistWithoutSongsSerializer(playlists, many=True)
         return serializer.data
+
+class UserRegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id','username','email','password']
+        extra_kwargs = {'password': {'write_only': True}}
+        def create(self, validated_data):
+            user = User.objects.create_user(validated_data['username'], validated_data['email'], validated_data['password'])
+            return user
+class UserRegisterSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('username','email', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
+class UserLoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'

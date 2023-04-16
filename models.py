@@ -27,7 +27,7 @@ class Artist(models.Model):
     follow = models.IntegerField(blank=True, null=True)
     thumbnail = models.TextField(blank=True, null=True)
     alias = models.TextField(primary_key=True)
-    songs = models.ManyToManyField('Song', through='Artistsong', blank=True)
+
     class Meta:
         managed = False
         db_table = 'Artist'
@@ -43,8 +43,8 @@ class Artistalbum(models.Model):
 
 
 class Artistsong(models.Model):
-    song = models.ForeignKey('Song', models.DO_NOTHING)
-    artist = models.ForeignKey(Artist, models.DO_NOTHING)
+    song = models.ForeignKey('Song', models.DO_NOTHING, blank=True, null=True)
+    artist = models.ForeignKey(Artist, models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -55,11 +55,10 @@ class Category(models.Model):
     id = models.TextField(primary_key=True)
     title = models.TextField(blank=True, null=True)
     alias = models.TextField(blank=True, null=True)
-    songs = models.ManyToManyField('Song', through='Categorysong', related_name='categories', blank=True)
+
     class Meta:
         managed = False
         db_table = 'Category'
-
 
 
 class Categorysong(models.Model):
@@ -77,7 +76,7 @@ class Playlist(models.Model):
     thumbnail = models.TextField(blank=True, null=True)
     topic = models.ForeignKey('Topic', models.DO_NOTHING, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-    songs = models.ManyToManyField('Song', through='Playlistsong', blank=True)
+
     class Meta:
         managed = False
         db_table = 'Playlist'
@@ -114,7 +113,7 @@ class Playlistsong(models.Model):
 
 
 class Playlistuser(models.Model):
-    user = models.ForeignKey('User', models.DO_NOTHING, blank=True, null=True)
+    user = models.ForeignKey(Playlistbyuser, models.DO_NOTHING, blank=True, null=True)
     playlist_id = models.TextField(blank=True, null=True)
 
     class Meta:
@@ -129,12 +128,8 @@ class Song(models.Model):
     thumbnail = models.TextField(blank=True, null=True)
     album = models.ForeignKey(Album, models.DO_NOTHING, blank=True, null=True)
     like = models.IntegerField(blank=True, null=True)
-    listen = models.IntegerField(blank=True, null=True)
     duration = models.IntegerField(blank=True, null=True)
-    category = models.ManyToManyField(Category, through='Categorysong', blank=True)
-    artists = models.ManyToManyField(Artist, through='Artistsong', blank=True)
-    playlists = models.ManyToManyField(Playlist, through='Playlistsong', blank=True)
-    
+
     class Meta:
         managed = False
         db_table = 'Song'
@@ -144,34 +139,10 @@ class Topic(models.Model):
     id = models.TextField(primary_key=True)
     title = models.TextField(blank=True, null=True)
     thumbnail = models.TextField(blank=True, null=True)
-    # playlist =models.OneToOneField(Playlist, models.DO_NOTHING, blank=True, null=True)
+
     class Meta:
         managed = False
         db_table = 'Topic'
-
-
-# class User(models.Model):
-#     user_name = models.TextField(primary_key=True)
-#     passwd = models.TextField()
-#     name = models.TextField(blank=True, null=True)
-#     email = models.TextField(blank=True, null=True)
-#     thumbnail = models.TextField(blank=True, null=True)
-
-#     class Meta:
-#         managed = False
-#         db_table = 'User'
-
-
-# class Usersongs(models.Model):
-#     song = models.ForeignKey(Song, models.DO_NOTHING)
-#     user = models.ForeignKey(User, models.DO_NOTHING)
-#     islike = models.BooleanField(blank=True, null=True)
-#     duration = models.IntegerField(blank=True, null=True)
-#     recenly_listen_date = models.DateField(blank=True, null=True)
-
-#     class Meta:
-#         managed = False
-#         db_table = 'UserSongs'
 
 
 class AuthGroup(models.Model):
@@ -286,25 +257,3 @@ class DjangoSession(models.Model):
     class Meta:
         managed = False
         db_table = 'django_session'
-
-from django.contrib.auth.models import AbstractUser
-
-
-class User(AbstractUser):
-    
-    password = models.CharField(max_length=100)
-    email = models.EmailField(max_length=100, unique=True)
-    username = models.CharField(max_length=100, unique=True)
-
-    is_superuser = models.BooleanField(default=False)
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    date_joined = models.DateTimeField(auto_now_add=True)
-    thumbnail = models.TextField(blank=True)
-    first_name = models.CharField(max_length=100, blank=True)
-    last_name = models.CharField(max_length=100, blank=True)
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = []
-
-    def __str__(self):
-        return self.email

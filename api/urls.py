@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from . import views
-
+from rest_framework_simplejwt import views as jwt_views
 urlpatterns = [
     path('api/topic/playlists',views.TopicListApiView.as_view()),
     path('api/albums',views.AlbumListApiView.as_view()),
@@ -16,4 +16,10 @@ urlpatterns = [
     path('api/categories', views.CategoryListApiView.as_view()),
     path('api/category/<str:alias>',views.CategoryDetailApiView.as_view()),
     path('api/audio/<str:id>',views.AudioApiView, name="audio"),
+
+
+    # user 
+    path('api/register', views.UserRegisterApiView.as_view(), name='register'),
+    path('api/login', views.UserLoginApiView.as_view(), name='login'),
+    path('api/user', views.CurrentUserView.as_view(), name='user'),
 ]
