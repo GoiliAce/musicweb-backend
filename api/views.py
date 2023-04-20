@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .zingapi import ZingMp3Async
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.db.models import Count
 from .models import *
 from rest_framework.permissions import IsAuthenticated
 from .serializers import *
@@ -348,3 +349,11 @@ class CurrentUserView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+class Category7List(APIView):
+    def get(self, request, format=None):
+        categories = Category.objects.annotate(num_albums=Count('album')).filter(num_albums__gte=7)
+        serializer = CategoryAlbum7Serializer(categories, many=True)
+        return Response(serializer.data)

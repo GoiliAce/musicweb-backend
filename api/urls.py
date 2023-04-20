@@ -3,11 +3,13 @@ from django.urls import path, include
 from . import views
 from rest_framework_simplejwt import views as jwt_views
 urlpatterns = [
-    path('api/topic/playlists',views.TopicListApiView.as_view()),
+    path("api/albums", views.Category7List.as_view(), name=""),
+
+    # path('api/topic/playlists',views.TopicListApiView.as_view()),
     path('api/albums',views.AlbumListApiView.as_view()),
-    path('api/albums/<str:id>',views.AlbumDetailApiView.as_view()),
+    path('api/album/<str:id>',views.AlbumDetailApiView.as_view()),
     path('api/artists',views.ArtistListApiView.as_view()),
-    path('api/playlists',views.PlaylistListApiView.as_view()),
+    path('api/playlists',views.TopicListApiView.as_view()),
     path('api/playlists/<str:id>',views.PlaylistDetailApiView.as_view()),
     path("api/playlist/<str:id>", views.PlaylistWithSongsDetailApiView.as_view(), name=""),
     path('api/songs',views.SongListApiView.as_view()),

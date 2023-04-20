@@ -1,9 +1,6 @@
 from rest_framework import serializers
 from .models import *
-class AlbumSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Album
-        fields = '__all__'
+from django.db.models import Count
 
 class ArtistSerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,7 +46,19 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
-
+class Cate4AlbumSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'title','alias']
+class AlbumSerializer(serializers.ModelSerializer):
+    songs = serializers.SerializerMethodField()
+    def get_songs(self, obj):
+        song = Song.objects.filter(album=obj)
+        serializer = SongForPlaylistSerializer(song, many=True)
+        return serializer.data
+    class Meta:
+        model = Album
+        fields = '__all__'
 
 
 class ArtistForSongSerializer(serializers.ModelSerializer):
@@ -125,3 +134,30 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
+
+class CategoryAlbumCountSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    title = serializers.CharField()
+    num_albums = serializers.IntegerField()
+
+class Album4CateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Album
+        fields = ['id', 'title', 'thumbnail']
+
+
+class CategoryAlbum7Serializer(serializers.ModelSerializer):
+    num_albums = serializers.SerializerMethodField()
+    albums = serializers.SerializerMethodField()
+
+    def get_num_albums(self, obj):
+        return obj.album_set.count()
+
+    def get_albums(self, obj):
+        albums = obj.album_set.annotate(num_songs=Count('song')).order_by('-num_songs')[:14]
+        return Album4CateSerializer(albums, many=True).data
+
+
+    class Meta:
+        model = Category
+        fields = ('id', 'title', 'num_albums', 'albums')

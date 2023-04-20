@@ -15,6 +15,7 @@ class Album(models.Model):
     descripton = models.TextField(blank=True, null=True)
     date_create = models.TextField(blank=True, null=True)
     like = models.IntegerField(blank=True, null=True)
+    cate = models.ForeignKey('Category', models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -129,6 +130,7 @@ class Song(models.Model):
     album = models.ForeignKey(Album, models.DO_NOTHING, blank=True, null=True)
     like = models.IntegerField(blank=True, null=True)
     duration = models.IntegerField(blank=True, null=True)
+    listen = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -143,6 +145,47 @@ class Topic(models.Model):
     class Meta:
         managed = False
         db_table = 'Topic'
+
+
+class ApiUser(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    last_login = models.DateTimeField(blank=True, null=True)
+    first_name = models.CharField(max_length=150, blank=True, null=True)
+    last_name = models.CharField(max_length=150, blank=True, null=True)
+    password = models.CharField(max_length=100)
+    email = models.CharField(unique=True, max_length=100)
+    username = models.CharField(unique=True, max_length=100, blank=True, null=True)
+    is_superuser = models.BooleanField(blank=True, null=True)
+    is_staff = models.BooleanField(blank=True, null=True)
+    is_active = models.BooleanField(blank=True, null=True)
+    date_joined = models.DateTimeField(blank=True, null=True)
+    thumbnail = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'api_user'
+
+
+class ApiUserGroups(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    user = models.ForeignKey(ApiUser, models.DO_NOTHING)
+    group = models.ForeignKey('AuthGroup', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'api_user_groups'
+        unique_together = (('user', 'group'),)
+
+
+class ApiUserUserPermissions(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    user = models.ForeignKey(ApiUser, models.DO_NOTHING)
+    permission = models.ForeignKey('AuthPermission', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'api_user_user_permissions'
+        unique_together = (('user', 'permission'),)
 
 
 class AuthGroup(models.Model):
@@ -175,45 +218,6 @@ class AuthPermission(models.Model):
         unique_together = (('content_type', 'codename'),)
 
 
-class AuthUser(models.Model):
-    password = models.CharField(max_length=128)
-    last_login = models.DateTimeField(blank=True, null=True)
-    is_superuser = models.BooleanField()
-    username = models.CharField(unique=True, max_length=150)
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    email = models.CharField(max_length=254)
-    is_staff = models.BooleanField()
-    is_active = models.BooleanField()
-    date_joined = models.DateTimeField()
-
-    class Meta:
-        managed = False
-        db_table = 'auth_user'
-
-
-class AuthUserGroups(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(AuthUser, models.DO_NOTHING)
-    group = models.ForeignKey(AuthGroup, models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'auth_user_groups'
-        unique_together = (('user', 'group'),)
-
-
-class AuthUserUserPermissions(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(AuthUser, models.DO_NOTHING)
-    permission = models.ForeignKey(AuthPermission, models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'auth_user_user_permissions'
-        unique_together = (('user', 'permission'),)
-
-
 class DjangoAdminLog(models.Model):
     action_time = models.DateTimeField()
     object_id = models.TextField(blank=True, null=True)
@@ -221,7 +225,7 @@ class DjangoAdminLog(models.Model):
     action_flag = models.SmallIntegerField()
     change_message = models.TextField()
     content_type = models.ForeignKey('DjangoContentType', models.DO_NOTHING, blank=True, null=True)
-    user = models.ForeignKey(AuthUser, models.DO_NOTHING)
+    user = models.ForeignKey(ApiUser, models.DO_NOTHING)
 
     class Meta:
         managed = False

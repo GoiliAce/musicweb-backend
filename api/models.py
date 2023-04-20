@@ -11,11 +11,11 @@ from django.db import models
 class Album(models.Model):
     id = models.TextField(primary_key=True)
     title = models.TextField(blank=True, null=True)
-    thumbnail_url = models.TextField(blank=True, null=True)
+    thumbnail = models.TextField(blank=True, null=True)
     descripton = models.TextField(blank=True, null=True)
     date_create = models.TextField(blank=True, null=True)
     like = models.IntegerField(blank=True, null=True)
-
+    cate = models.ForeignKey('Category', models.DO_NOTHING, blank=True, null=True)
     class Meta:
         managed = False
         db_table = 'Album'
