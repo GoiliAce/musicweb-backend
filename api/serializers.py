@@ -161,3 +161,11 @@ class CategoryAlbum7Serializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('id', 'title', 'num_albums', 'albums')
+
+
+
+class SearchResultSerializer(serializers.Serializer):
+    artists = ArtistSerializer(many=True)
+    albums = AlbumSerializer(many=True)
+    playlists = PlaylistSerializer(many=True)
+    songs = SongForPlaylistSerializer(many=True)

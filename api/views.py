@@ -357,3 +357,33 @@ class Category7List(APIView):
         categories = Category.objects.annotate(num_albums=Count('album')).filter(num_albums__gte=7)
         serializer = CategoryAlbum7Serializer(categories, many=True)
         return Response(serializer.data)
+
+class SearchAPIView(APIView):
+    
+    def get(self, request, *args, **kwargs):
+        keyword = request.GET.get('search', '')
+        artist_qs = Artist.objects.filter(name__icontains=keyword).order_by('-follow')[:8] |\
+            Artist.objects.filter(song__title__icontains=keyword)[:8]
+        
+        album_qs = Album.objects.filter(title__icontains=keyword).order_by('-like')[:9]
+        playlist_qs = Playlist.objects.filter(title__icontains=keyword)[:9]
+        song_qs = Song.objects.filter(title__icontains=keyword).order_by('-listen')[:8] | \
+            Song.objects.filter(artist__name__icontains=keyword)[:8]
+        artists_serializer = ArtistSerializer(artist_qs, many=True).data
+        albums_serializer = AlbumSerializer(album_qs, many=True).data
+        playlists_serializer = PlaylistSerializer(playlist_qs, many=True).data
+        songs_serializer = SongForPlaylistSerializer(song_qs, many=True).data
+
+        result = {
+            'artists': artists_serializer,
+            'albums': albums_serializer,
+            'playlists': playlists_serializer,
+            'songs': songs_serializer
+        }
+
+        serializer = SearchResultSerializer(data=result)
+
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

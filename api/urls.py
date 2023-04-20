@@ -24,4 +24,6 @@ urlpatterns = [
     path('api/register', views.UserRegisterApiView.as_view(), name='register'),
     path('api/login', views.UserLoginApiView.as_view(), name='login'),
     path('api/user', views.CurrentUserView.as_view(), name='user'),
+    # search
+    path('api/search/', views.SearchAPIView.as_view(), name='search'),
 ]
