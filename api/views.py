@@ -5,7 +5,10 @@ from .zingapi import ZingMp3Async
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.db.models import Count
 from .models import *
+from django.http import JsonResponse
+from asgiref.sync import async_to_sync
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from .serializers import *
 class TopicListApiView(APIView):
     def get(self, request):
@@ -87,18 +90,32 @@ class PlaylistWithSongsDetailApiView(APIView):
         except Playlist.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
     def get(self, request, id):
+        user = request.user
+        print(user)
         playlist = self.get_object(id)
         serializer = PlaylistWithSongsSerializer(playlist)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PlaylistWithSongUserDetailApiView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def get_object(self, id):
+        try:
+            return Playlist.objects.get(id=id)
+        except Playlist.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+    def get(self, request, id):
+        playlist = self.get_object(id)
+        serializer = PlaylistWithSongsUserSerializer(playlist, context={'user': request.user})
+        return Response(serializer.data, status=status.HTTP_200_OK)
     def put(self, request, id):
         playlist = self.get_object(id)
-        serializer = PlaylistWithSongsSerializer(playlist, data=request.data)
+        serializer = PlaylistWithSongsUserSerializer(playlist, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 class AlbumListApiView(APIView):
@@ -121,6 +138,18 @@ class AlbumDetailApiView(APIView):
     def get(self, request, id):
         album = self.get_object(id)
         serializer = AlbumSerializer(album)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+class AlbumDetailUserApiView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def get_object(self, id):
+        try:
+            return Album.objects.get(id=id)
+        except Album.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+    def get(self, request, id):
+        album = self.get_object(id)
+        serializer = Album4UserSerializer(album, context={'user': request.user})
         return Response(serializer.data, status=status.HTTP_200_OK)
     def put(self, request, id):
         album = self.get_object(id)
@@ -211,8 +240,6 @@ class SongDetailApiView(APIView):
         song = self.get_object(id)
         serializer = SongForPlaylistSerializer(song)
         response = Response(serializer.data, status=status.HTTP_200_OK)
-        response['Access-Control-Allow-Origin'] = 'http://localhost:3000'
-        response['Access-Control-Allow-Credentials'] = 'true'
         return response
 
     def put(self, request, id):
@@ -221,8 +248,6 @@ class SongDetailApiView(APIView):
         if serializer.is_valid():
             serializer.save()
             response = Response(serializer.data, status=status.HTTP_200_OK)
-            response['Access-Control-Allow-Origin'] = 'http://localhost:3000'
-            response['Access-Control-Allow-Credentials'] = 'true'
             return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -230,8 +255,6 @@ class SongDetailApiView(APIView):
         song = self.get_object(id)
         song.delete()
         response = Response(status=status.HTTP_204_NO_CONTENT)
-        response['Access-Control-Allow-Origin'] = 'http://localhost:3000'
-        response['Access-Control-Allow-Credentials'] = 'true'
         return response
 
     
@@ -271,8 +294,7 @@ class CategoryDetailApiView(APIView):
 
 
 
-from django.http import JsonResponse
-from asgiref.sync import async_to_sync
+
 async def getAudio(request, id):
     zi = ZingMp3Async()
     url = await zi.getAudio(id)
@@ -333,7 +355,6 @@ class UserLoginApiView(APIView):
             'error_code': 400
         }, status=status.HTTP_400_BAD_REQUEST)
 
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 class CurrentUserView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -387,3 +408,111 @@ class SearchAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AddSongFavorite(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user = request.user
+        song_id = request.data.get('songId')
+        islike = request.data.get('islike')
+        try:
+            user_song = Usersong.objects.get(id_user=user, id_song=song_id)
+            serializer = UpdateUserSongSerializer(user_song, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors, status=400)
+        except Usersong.DoesNotExist:
+            serializer = AddUserSongSerializer(data={
+                'id_user': user,
+                'id_song': song_id,
+                'islike': islike,
+            })
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors, status=400)
+    def post(self, request):
+        user = request.user
+        song_id = request.data.get('songId')
+        islike = request.data.get('islike')
+        duration  = request.data.get('duration')
+        try:
+            Usersong.objects.get(id_user=user, id_song=song_id)
+            return Response({'error': 'UserSong already exists.'}, status=400)
+        except Usersong.DoesNotExist:
+            serializer = AddUserSongSerializer(data={
+                'id_user': user,
+                'id_song': song_id,
+                'islike': islike,
+                'duration': duration
+            })
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors, status=400)
+from django.db.models.functions import Random
+from django.db.models import Count, F, Value
+class SongRecommend(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user.username
+        song_ids = Song.objects.raw(f'''
+            SELECT "Song".id
+            FROM "Song"
+            WHERE "Song".id IN (
+                SELECT s.id
+				from "Song" AS s
+				JOIN "CategorySong" AS cs ON cs.song_id = s.id
+				JOIN "Category" AS ct ON ct.id = cs.cate_id
+				WHERE ct.title IN (SELECT ct.title
+                                FROM "api_user" AS u
+                                JOIN "UserSong" AS us ON u.username = us.id_user
+                                JOIN "Song" AS s ON s.id = us.id_song
+                                JOIN "CategorySong" AS cs ON cs.song_id = s.id
+                                JOIN "Category" AS ct ON ct.id = cs.cate_id
+                                where  u.username='{user}'
+                                GROUP BY ct.title)
+				Group by s.id
+                order by random() limit 20) 
+        ''')
+        # lấy random 20 bài hát
+        song_ids = Song.objects.filter(id__in=song_ids).order_by('?')[:20]
+        # Sử dụng serializer để chuyển đổi kết quả thành JSON
+        serializer = SongForPlaylistSerializer(song_ids, many=True)
+
+        return Response(serializer.data)
+class AlbumRecommend(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated] 
+    def get(self, request):
+        user = request.user.username
+        albums_ids = Album.objects.raw(f'''
+                SELECT alb.id
+				from "Album" AS alb
+				JOIN "ArtistAlbum" AS ars ON ars.album_id = alb.id
+				JOIN "Artist" AS ar ON ar.alias = ars.artist_id
+				WHERE ar.name IN (SELECT ar.name
+                                FROM "api_user" AS u
+                                JOIN "UserSong" AS us ON u.username = us.id_user
+                                JOIN "Song" AS s ON s.id = us.id_song
+                                JOIN "ArtistSong" AS ars ON ars.song_id = s.id
+								JOIN "Artist" AS ar ON ar.alias = ars.artist_id
+                                where  u.username='hung'
+                                GROUP BY ar.name)
+				Group by alb.id
+                order by random() limit 20
+        ''')
+        # lấy random 20 bài hát
+
+        serializer = AlbumSerializer(albums_ids, many=True)
+        return Response(serializer.data)
+    

@@ -11,7 +11,7 @@ from django.db import models
 class Album(models.Model):
     id = models.TextField(primary_key=True)
     title = models.TextField(blank=True, null=True)
-    thumbnail_url = models.TextField(blank=True, null=True)
+    thumbnail = models.TextField(blank=True, null=True)
     descripton = models.TextField(blank=True, null=True)
     date_create = models.TextField(blank=True, null=True)
     like = models.IntegerField(blank=True, null=True)
@@ -145,6 +145,18 @@ class Topic(models.Model):
     class Meta:
         managed = False
         db_table = 'Topic'
+
+
+class Usersong(models.Model):
+    id_user = models.ForeignKey('ApiUser', models.DO_NOTHING, db_column='id_user', to_field='username', blank=True, null=True)
+    id_song = models.ForeignKey(Song, models.DO_NOTHING, db_column='id_song', blank=True, null=True)
+    islike = models.BooleanField(blank=True, null=True)
+    duration = models.IntegerField(blank=True, null=True)
+    recenly_listen_date = models.DateField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'UserSong'
 
 
 class ApiUser(models.Model):

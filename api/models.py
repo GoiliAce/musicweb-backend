@@ -19,6 +19,9 @@ class Album(models.Model):
     class Meta:
         managed = False
         db_table = 'Album'
+    def __str__(self):
+        return self.id
+    
 
 
 class Artist(models.Model):
@@ -28,6 +31,7 @@ class Artist(models.Model):
     thumbnail = models.TextField(blank=True, null=True)
     alias = models.TextField(primary_key=True)
     songs = models.ManyToManyField('Song', through='Artistsong', blank=True)
+    albums = models.ManyToManyField(Album, through='Artistalbum', blank=True)
     class Meta:
         managed = False
         db_table = 'Artist'
@@ -134,10 +138,17 @@ class Song(models.Model):
     category = models.ManyToManyField(Category, through='Categorysong', blank=True)
     artists = models.ManyToManyField(Artist, through='Artistsong', blank=True)
     playlists = models.ManyToManyField(Playlist, through='Playlistsong', blank=True)
-    
     class Meta:
         managed = False
         db_table = 'Song'
+    def __str__(self):
+        return self.id
+    def is_favorite(self, user):
+        if user.is_authenticated:
+            usersong = Usersong.objects.filter(id_user=user, id_song=self).first()
+            if usersong:
+                return usersong.islike
+        return False
 
 
 class Topic(models.Model):
@@ -162,16 +173,7 @@ class Topic(models.Model):
 #         db_table = 'User'
 
 
-# class Usersongs(models.Model):
-#     song = models.ForeignKey(Song, models.DO_NOTHING)
-#     user = models.ForeignKey(User, models.DO_NOTHING)
-#     islike = models.BooleanField(blank=True, null=True)
-#     duration = models.IntegerField(blank=True, null=True)
-#     recenly_listen_date = models.DateField(blank=True, null=True)
 
-#     class Meta:
-#         managed = False
-#         db_table = 'UserSongs'
 
 
 class AuthGroup(models.Model):
@@ -307,4 +309,14 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     def __str__(self):
-        return self.email
+        return self.username
+class Usersong(models.Model):
+    id_user = models.ForeignKey(User, models.DO_NOTHING, db_column='id_user', to_field='username', blank=True, null=True)
+    id_song = models.ForeignKey(Song, models.DO_NOTHING, db_column='id_song', blank=True, null=True)
+    islike = models.BooleanField(blank=True, null=True)
+    duration = models.IntegerField(blank=True, null=True)
+    recenly_listen_date = models.DateField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'UserSong'
