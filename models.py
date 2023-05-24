@@ -137,6 +137,17 @@ class Song(models.Model):
         db_table = 'Song'
 
 
+class Songlistenweek(models.Model):
+    id = models.AutoField()
+    lastlisten = models.DateField(db_column='lastListen', blank=True, null=True)  # Field name made lowercase.
+    totallisten = models.IntegerField(db_column='totalListen', blank=True, null=True)  # Field name made lowercase.
+    id_song = models.OneToOneField(Song, models.DO_NOTHING, db_column='id_song', primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'SongListenWeek'
+
+
 class Topic(models.Model):
     id = models.TextField(primary_key=True)
     title = models.TextField(blank=True, null=True)

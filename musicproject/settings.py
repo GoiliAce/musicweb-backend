@@ -88,26 +88,26 @@ WSGI_APPLICATION = 'musicproject.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-# DATABASES = {
-#     'default':{
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'railway',
-#         'USER': 'postgres',
-#         'PASSWORD': '9SlUr9QR3nmxzOdOT8yH',
-#         'HOST': 'containers-us-west-137.railway.app',
-#         'PORT': '6459',
-#     }
-# }
 DATABASES = {
     'default':{
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'test2',
+        'NAME': 'railway',
         'USER': 'postgres',
-        'PASSWORD': '040402',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'PASSWORD': 'iENgYz07g7iwCsxhnIUH',
+        'HOST': 'containers.railway.app',
+        'PORT': '5968',
     }
 }
+# DATABASES = {
+#     'default':{
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'test2',
+#         'USER': 'postgres',
+#         'PASSWORD': '040402',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
 
 # Password validation

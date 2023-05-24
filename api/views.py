@@ -516,3 +516,34 @@ class AlbumRecommend(APIView):
         serializer = AlbumSerializer(albums_ids, many=True)
         return Response(serializer.data)
     
+# update luot xem theo tuan trong thang
+from datetime import datetime, timedelta, date
+class GetSongListen(APIView):
+    def get(self, request):
+        
+        songs = SongListenWeek.objects.filter(date_listen__gte=date.today() - timedelta(days=7)).order_by('-listen')[:10]
+        serializer = SongListenWeekSerializer(songs, many=True)
+        # print(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class UpdateSongListen(APIView):
+
+    def post(self, request, id):
+        song =  Song.objects.get(id=id)
+        date_now = date.today()
+        
+        song_in_week = SongListenWeek.objects.filter(song_id=id).order_by('-date_listen').first()
+        if song_in_week:
+            print(song_in_week)
+            # nếu ngày trong tuần của bài hát đó trong tuần hiện tại thì cập nhật lại lượt nghe
+            if song_in_week.date_listen > date_now - timedelta(days=7):
+                song_in_week.listen += 1
+                song_in_week.save()
+                return Response({'success': 'Update success.'}, status=200)
+            else:
+                SongListenWeek.objects.create(song_id=song, date_listen=date_now, listen=1)
+                return Response({'success': 'Create success.'}, status=200)
+        else:
+            SongListenWeek.objects.create(song_id=song, date_listen=date_now, listen=1)
+            return Response({'error': 'SongListenWeek not exists.'}, status=200)
+

@@ -35,5 +35,8 @@ urlpatterns = [
     #  recommend
     path('api/user/recommend/', views.SongRecommend.as_view(), name='recommend'),
     path('api/user/recommend/album', views.AlbumRecommend.as_view(), name='recommend'),
-
+    
+    # update luot nghe
+    path('api/song/update-listen/<str:id>', views.UpdateSongListen.as_view(), name='update listen'),
+    path('api/get-listen', views.GetSongListen.as_view(), name='get listen'), 
 ]

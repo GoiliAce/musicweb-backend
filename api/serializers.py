@@ -245,3 +245,18 @@ class AddUserSongSerializer(serializers.ModelSerializer):
             duration=duration
         )
         return user_song
+class Song4ListenWeekSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Song
+        fields = ['title', 'artists']
+
+class SongListenWeekSerializer(serializers.ModelSerializer):
+    # get name song
+    song = serializers.SerializerMethodField()
+    def get_song(self, obj):
+        song = Song.objects.get(id=obj.song_id)
+        serializer = Song4ListenWeekSerializer(song)
+        return serializer.data
+    class Meta:
+        model = SongListenWeek
+        fields = ['listen', 'song']

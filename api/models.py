@@ -150,6 +150,14 @@ class Song(models.Model):
                 return usersong.islike
         return False
 
+class SongListenWeek(models.Model):
+    song = models.ForeignKey(Song, models.DO_NOTHING, blank=True, null=True)
+    listen = models.IntegerField(blank=True, null=True)
+    date_listen  = models.DateField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'SongListenWeek'
 
 class Topic(models.Model):
     id = models.TextField(primary_key=True)
